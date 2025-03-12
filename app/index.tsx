@@ -1,12 +1,13 @@
 import { StyleSheet, Text, View , Image ,TouchableOpacity} from 'react-native'
-import React from 'react';
+import React, { useEffect } from 'react';
 import "@/global.css";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from 'expo-router';
+import { Redirect, useNavigation } from 'expo-router';
 import { NavigationProp } from '@react-navigation/native';
 export default function index () {
     const navigation = useNavigation<NavigationProp<any>>();
   return (
+
     <SafeAreaView className='bg-white h-full justify-center items-center gap-[71px] p-4'>
         <View className='justify-center items-center gap-[88px]'>
             <Image source={require("@/assets/images/splash-icon.png")} />
@@ -24,6 +25,7 @@ export default function index () {
                 </Text>
             </TouchableOpacity>
         </View>
+        <Redirect href={"/(tabs)/Insight"}/>
     </SafeAreaView>  
 )
 };

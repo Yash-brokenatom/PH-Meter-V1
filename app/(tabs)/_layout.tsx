@@ -7,15 +7,23 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Feather from '@expo/vector-icons/Feather';
+import Foundation from '@expo/vector-icons/Foundation';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <Tabs
+    <Tabs 
       screenOptions={{
+        animation:'shift',
+        headerTransparent:true,
+        headerTitleStyle:{fontSize:30 , fontWeight:700 },
+        headerTitleAlign:"center",
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
@@ -27,19 +35,29 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="explore"
+        name="Insight"
         options={{
-          title: 'Summary',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          headerShown:false,
+          tabBarIcon: ({ color }) => <MaterialIcons name="insights" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="Sharing"
+        name="Report"
         options={{
-          title: 'Share',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Report',
+          tabBarIcon: ({ color }) => <Foundation name="results" size={24} color={color} />,
         }}
       />
+      <Tabs.Screen name='Connection' options={{
+        headerShown:false,
+        tabBarIcon:({color})=> <MaterialCommunityIcons name="transit-connection-variant" size={24} color={color} />
+      }}/>
+      <Tabs.Screen name='More' options={{
+        title:"More",
+        headerTitleStyle:{fontWeight:700, color:"black" },
+        headerBackgroundContainerStyle:{borderColor:"black", borderBottomWidth:0.6},
+        tabBarIcon:({color})=> <Feather name="more-horizontal" size={24} color={color} />
+      }}/>
     </Tabs>
   );
 }
