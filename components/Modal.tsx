@@ -22,9 +22,10 @@ export type ListItem = {
 interface AddModalProps {
   list: ListItem[];
   setList: React.Dispatch<React.SetStateAction<ListItem[]>>;
+  onAdd: (ph: number, dateTime: Date) => Promise<void>; 
 }
 
-export default function AddModal({ list, setList }: AddModalProps) {
+export default function AddModal({ list, setList, onAdd }: AddModalProps) {
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [dateTime, setDateTime] = useState<Date>(new Date());
   const [showDate, setShowDate] = useState(false);
@@ -45,8 +46,9 @@ export default function AddModal({ list, setList }: AddModalProps) {
     setShowTime(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (ph !== null) {
+      await onAdd(ph, dateTime);  
       setList((prevList) => [...prevList, { dateTime, ph }]);
       setPh(null);
       setIsModalVisible(false);
