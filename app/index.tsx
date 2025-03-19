@@ -25,7 +25,7 @@ export default function index () {
                 </Text>
             </TouchableOpacity>
         </View>
-        <Redirect href={"/(tabs)/Report"}/>
+        <Redirect href={"/(tabs)/Connection"}/>
     </SafeAreaView>  
 )
-};
+}; 

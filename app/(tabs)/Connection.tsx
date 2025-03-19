@@ -15,7 +15,7 @@ export default function PHMeterScreen() {
     <SafeAreaView >
       <View className="justify-around h-full items-center">
         <View>
-        <Text className="text-4xl font-bold text-center">Connect Your pH Meter</Text>
+        <Text className="text-4xl font-bold text-center">Connect Your Smart pH</Text>
       <Text className="text-center text-lg mt-1 tracking-wider">
         Ensure your device is turned on and nearby.
       </Text>

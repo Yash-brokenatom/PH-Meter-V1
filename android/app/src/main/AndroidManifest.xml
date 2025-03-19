@@ -26,6 +26,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
         <data android:scheme="com.y_a_s_h.PHMeter"/>
+        <data android:scheme="exp+ph-meter"/>
       </intent-filter>
     </activity>
   </application>

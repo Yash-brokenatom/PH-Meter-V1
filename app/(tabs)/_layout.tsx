@@ -14,7 +14,6 @@ import Feather from '@expo/vector-icons/Feather';
 import Foundation from '@expo/vector-icons/Foundation';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
 
   return (
     <Tabs 
@@ -23,7 +22,7 @@ export default function TabLayout() {
         headerTransparent:true,
         headerTitleStyle:{fontSize:30 , fontWeight:700 },
         headerTitleAlign:"center",
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: "#304FFE",
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
@@ -53,9 +52,11 @@ export default function TabLayout() {
         tabBarIcon:({color})=> <MaterialCommunityIcons name="transit-connection-variant" size={24} color={color} />
       }}/>
       <Tabs.Screen name='More' options={{
-        title:"More",
-        headerTitleStyle:{fontWeight:700, color:"black" },
-        headerBackgroundContainerStyle:{borderColor:"black", borderBottomWidth:0.6},
+        headerShown:false,
+        tabBarIcon:({color})=> <Feather name="more-horizontal" size={24} color={color} />
+      }}/>
+      <Tabs.Screen name='Test' options={{
+        headerShown:false,
         tabBarIcon:({color})=> <Feather name="more-horizontal" size={24} color={color} />
       }}/>
     </Tabs>

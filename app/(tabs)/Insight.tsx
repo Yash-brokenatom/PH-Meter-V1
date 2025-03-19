@@ -15,16 +15,15 @@ export default function Insight() {
     fetchRecords(setList);
   }, []);
 
-  const handleAddRecord = async (ph: number) => {
-    const dateTime = new Date().toISOString();
-    await insertRecord(ph, dateTime);
+  const handleAddRecord = async (ph: number, selectedDateTime: Date) => {
+    await insertRecord(ph, selectedDateTime.toISOString()); 
     fetchRecords(setList);
+};
 
-  };
 
-  const sortedList = useMemo(() => {
-    return [...list].sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime());
-  }, [list]);
+const sortedList = useMemo(() => {
+  return [...list].sort((a, b) => b.id - a.id);
+}, [list]);
 
   const barData = useMemo(() => {
     return list.map((item, index) => ({
@@ -62,12 +61,12 @@ export default function Insight() {
           <Text>Acidic</Text>
         </View>
         <View className="flex-row gap-2 items-center">
-          <View className="bg-[#007FAA] w-4 h-4 rounded-full"></View>
-          <Text>Alkaline</Text>
-        </View>
-        <View className="flex-row gap-2 items-center">
           <View className="bg-[#B1C644] w-4 h-4 rounded-full"></View>
           <Text>Normal</Text>
+        </View>
+        <View className="flex-row gap-2 items-center">
+          <View className="bg-[#007FAA] w-4 h-4 rounded-full"></View>
+          <Text>Alkaline</Text>
         </View>
       </View>
 

@@ -15,8 +15,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff",
-        "googleServicesFile": "./google-services.json"
+        "backgroundColor": "#FFFFFF"
+          
       },
       "package": "com.y_a_s_h.PHMeter"
     },
@@ -35,16 +35,9 @@
             "enableFTS": false,
             "useSQLCipher": false
           },
-        "ios": {
-            
+          "ios": {
             "customBuildFlags": ["-DSQLITE_ENABLE_DBSTAT_VTAB=1 -DSQLITE_ENABLE_SNAPSHOT=1"]
           }
-        }
-      ],
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps._some_id_here_"
         }
       ],
       "expo-router",
@@ -52,7 +45,6 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
           "resizeMode": "cover",
           "backgroundColor": "#ffffff"
         }
