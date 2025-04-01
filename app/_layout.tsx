@@ -30,7 +30,7 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider  value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{animation:"slide_from_right"}} >
+      <Stack screenOptions={{animation:"fade_from_bottom"}} >
       <Stack.Screen name="+not-found" />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name='index' options={{headerShown:false}}/>
@@ -38,7 +38,7 @@ export default function RootLayout() {
         <Stack.Screen name='Login' options={{headerShown:false}}/>
        
       </Stack>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" backgroundColor={colorScheme==="dark"?"black":"white"}/>
     </ThemeProvider>
   );
 }

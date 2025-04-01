@@ -8,24 +8,24 @@ export default function index () {
     const navigation = useNavigation<NavigationProp<any>>();
   return (
 
-    <SafeAreaView className='bg-white h-full justify-center items-center gap-[71px] p-4'>
-        <View className='justify-center items-center gap-[88px]'>
-            <Image source={require("@/assets/images/splash-icon.png")} />
-            <Text className=' text-center font-bold text-5xl '>Track Your Body’s pH Balance Effortlessly</Text>
+    <SafeAreaView className='bg-white h-full justify-center items-center gap-[71px] '>
+        <View className='justify-center items-center gap-[88px] w-full'>
+            <Image style={{height:180, width:180}} source={require("@/assets/images/splash-icon.png")} />
+            <Text className=' text-center font-semibold text-4xl  '>Track Your Body’s pH Balance Effortlessly</Text>
         </View>
-        <View className='w-full gap-5'>
-            <TouchableOpacity className='bg-[#324373] w-full p-4 rounded-full' onPress={()=> navigation.navigate("GetStarted")} >
+        <View className='w-full gap-5 p-12'>
+            <TouchableOpacity className='bg-[#304FFE]  p-5 rounded-xl  ' onPress={()=> navigation.navigate("GetStarted")} >
                 <Text className='text-white text-center'>
                     Get Started
                 </Text>
             </TouchableOpacity>
-            <TouchableOpacity  onPress={()=> navigation.navigate("Login")} className='bg-[#324373] w-full p-4 rounded-full'  >
-                <Text className='text-white text-center'>
+            <TouchableOpacity  onPress={()=> navigation.navigate("Login")} className=' w-full p-5 rounded-xl border' style={{borderColor:"#304FFE",borderWidth:2}}  >
+                <Text className='text-[#304FFE] text-center'>
                     Login
                 </Text>
             </TouchableOpacity>
         </View>
-        <Redirect href={"/(tabs)/Connection"}/>
+        {/* <Redirect href={"./(tabs)/Test"}/> */}
     </SafeAreaView>  
 )
 }; 

@@ -12,10 +12,12 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Feather from '@expo/vector-icons/Feather';
 import Foundation from '@expo/vector-icons/Foundation';
+import { StatusBar } from 'expo-status-bar';
 
 export default function TabLayout() {
 
   return (
+    
     <Tabs 
       screenOptions={{
         animation:'shift',
@@ -60,5 +62,6 @@ export default function TabLayout() {
         tabBarIcon:({color})=> <Feather name="more-horizontal" size={24} color={color} />
       }}/>
     </Tabs>
+    
   );
 }

@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.y_a_s_h.PHMeter"
+      "bundleIdentifier": "com.y_a_s_h.PHMeter",
+      "infoPlist": {
+        "NSBluetoothPeripheralUsageDescription": "This app requires Bluetooth to connect to devices."
+      }
+
     },
     "android": {
       "adaptiveIcon": {
@@ -18,6 +22,14 @@
         "backgroundColor": "#FFFFFF"
           
       },
+      "permissions":[
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
+        "BLUETOOTH_ADVERTISE",
+        "ACCESS_FINE_LOCATION"
+      ],
       "package": "com.y_a_s_h.PHMeter"
     },
     "web": {
@@ -46,7 +58,7 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "cover",
-          "backgroundColor": "#ffffff"
+          "backgroundColor":"#C0DDE9"
         }
       ],
       "expo-build-properties",
