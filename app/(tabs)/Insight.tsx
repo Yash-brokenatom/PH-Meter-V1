@@ -3,8 +3,7 @@ import { Text, View, TouchableOpacity, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BarChart } from "react-native-gifted-charts";
-import AddModal from "@/components/Modal";
-import { setupDatabase, fetchRecords, insertRecord } from "@/Database/Database"; // Import database functions
+import { fetchRecords,setupDatabase } from "@/Database/Database"; // Import database functions
 
 export default function Insight() {
   const [list, setList] = useState<any[]>([]);
@@ -12,14 +11,12 @@ export default function Insight() {
 
   useEffect(() => {
     setupDatabase();
-    fetchRecords(setList);
-  }, []);
-
-  const handleAddRecord = async (ph: number, selectedDateTime: Date) => {
-    await insertRecord(ph, selectedDateTime.toISOString()); 
-    fetchRecords(setList);
-};
-
+    const getList = async() => {
+      const data = await fetchRecords();
+      setList(data);
+    }
+    getList();
+  },[]);
 
 const sortedList = useMemo(() => {
   return [...list].sort((a, b) => b.id - a.id);
@@ -47,15 +44,15 @@ const sortedList = useMemo(() => {
   }, [list, selectedBar]);
 
   return (
-    <SafeAreaView className="h-full w-full gap-8 bg-white">
-      <View className="flex-row justify-end items-center gap-4 p-4">
-        <AddModal list={list} setList={setList} onAdd={handleAddRecord} />
-        <TouchableOpacity>
+    <SafeAreaView className="h-full w-full gap-8 bg-white ">
+      <View className="flex-row justify-center items-center gap-4 p-4 bg-slate-400">
+        {/* <TouchableOpacity>
           <Ionicons name="search" size={32} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        <Text className="text-2xl font-bold " >Smart pH </Text>
       </View>
 
-      <View className="flex-row gap-4 items-center px-4">
+      <View className="flex-row gap-4  items-center px-4">
         <View className="flex-row gap-2 items-center">
           <View className="bg-[#FF9359] w-4 h-4 rounded-full"></View>
           <Text>Acidic</Text>
@@ -82,7 +79,6 @@ const sortedList = useMemo(() => {
       />
 
       <FlatList
-        
         data={sortedList}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (

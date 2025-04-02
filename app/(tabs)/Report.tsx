@@ -37,7 +37,9 @@ export default function Report() {
 
       // ✅ Fetch Data
       const records = await new Promise<any[]>((resolve) =>
-        fetchRecords(resolve)
+        {const data = fetchRecords();
+        resolve(data);}
+        
       );
 
       // ✅ Filter records by date range
