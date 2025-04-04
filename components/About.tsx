@@ -9,10 +9,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { insertPreference , updateData,fetchPreferencesAsync} from "@/Database/Database";
-import { text } from "stream/consumers";
+import { useUser } from '@clerk/clerk-expo'
 
 
 export default function About() {
+  const { user } = useUser()
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [data,setData]=useState({
   name:"",
@@ -78,7 +79,7 @@ const handleSave = async()=>{
                      About me
                    </Text>
                    <Text>
-                     email
+                   {user?.emailAddresses[0].emailAddress}
                    </Text>
                  </View>
                </View>

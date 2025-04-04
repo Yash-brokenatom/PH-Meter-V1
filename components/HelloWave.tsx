@@ -33,8 +33,8 @@ export function HelloWave() {
 
 const styles = StyleSheet.create({
   text: {
-    fontSize: 22,
-    lineHeight: 32,
-    marginTop: -4,
+    fontSize: 32,
+    lineHeight: 35,
+    
   },
 });

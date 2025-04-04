@@ -9,7 +9,7 @@ import {
 import React, { useRef, useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import DropDownPicker from "react-native-dropdown-picker";
+
 import {
   setupDatabase,
   insertPreference,
@@ -19,7 +19,7 @@ import {
 import { useNavigation } from "expo-router";
 import { NavigationProp } from "@react-navigation/native";
 import index from ".";
-
+import DropDownPicker from "react-native-dropdown-picker";
 type OptionType = string | { type: "jsx"; value: JSX.Element };
 export default function GetStarted() {
   const navigation = useNavigation<NavigationProp<any>>();
