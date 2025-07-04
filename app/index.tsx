@@ -30,7 +30,7 @@ export default function index () {
                               <Text className="text-center text-white">New User</Text>
                             </LinearGradient>
                           </TouchableOpacity>
-              <TouchableOpacity style={{borderColor:"#0983C8",borderWidth:2,padding:12,borderRadius:10}} onPress={()=> navigation.navigate("GetStarted")}>
+              <TouchableOpacity style={{borderColor:"#0983C8",borderWidth:2,padding:12,borderRadius:10}} onPress={()=> navigation.navigate("Login")}>
                               <Text className="text-center text-[#0983C8]">Existing User</Text>
                           </TouchableOpacity>
            

@@ -58,7 +58,7 @@ export default function More() {
         setIsModalVisible(true);
       }
     })
-
+//  data for the modal
   const modalContent = ()=>{
   return <View className="h-full">{currentScreen === "Screen1" && (
     <View style={{backgroundColor:"#EBEBEB" , flex:1, borderRadius:20,top:10}}>
@@ -274,18 +274,18 @@ export default function More() {
     { item: "User Manual" },
   ];
 
-
+  //  actual code start from here
   return (
     <SafeAreaView className=" h-full bg-white w-full">
       {screen === "View1" && (
         <>
      
-          <View className="border-b w-full px-5 py-4 my-8 bg-white" style={{ borderColor: "#8D8D8D" }}>
+          <View className="border-b w-full px-5 py-4 my-8  bg-white" style={{ borderColor: "#8D8D8D" }}>
             <Text className="font-bold text-lg text-gray-800 text-center">More</Text>
           </View>
 
        
-          <View className="gap-2 w-full px-5">
+          <View className="gap-2  w-full px-5">
             {data.map((entry, index) => (
               <TouchableOpacity
                 key={index}

@@ -15,6 +15,7 @@ import Foundation from '@expo/vector-icons/Foundation';
 
 export default function TabLayout() {
 
+
   return (
     <Tabs 
       screenOptions={{
@@ -24,14 +25,22 @@ export default function TabLayout() {
         headerTitleAlign:"center",
         tabBarActiveTintColor: "#304FFE",
         tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
+        tabBarBackground:TabBarBackground,
         tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
+  ios: {
+    position: 'absolute',
+    backgroundColor: 'white',
+    borderTopWidth: 0,
+  },
+  android: {
+    backgroundColor: 'white',
+    borderTopWidth: 0,
+    elevation: 0,
+  },
+  default: {
+    backgroundColor: 'white',
+  },
+}),
       }}>
       <Tabs.Screen
         name="Insight"
@@ -44,6 +53,7 @@ export default function TabLayout() {
         name="Report"
         options={{
           title: 'Report',
+          headerTintColor:"black",
           tabBarIcon: ({ color }) => <Foundation name="results" size={24} color={color} />,
         }}
       />

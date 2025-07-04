@@ -4,10 +4,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BarChart } from "react-native-gifted-charts";
 import { fetchRecords,setupDatabase } from "@/Database/Database"; // Import database functions
+import { useIsFocused } from "@react-navigation/native";
 
 export default function Insight() {
   const [list, setList] = useState<any[]>([]);
   const [selectedBar, setSelectedBar] = useState<number | null>(null);
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     setupDatabase();
@@ -16,7 +18,7 @@ export default function Insight() {
       setList(data);
     }
     getList();
-  },[]);
+  },[isFocused]);
 
 const sortedList = useMemo(() => {
   return [...list].sort((a, b) => b.id - a.id);

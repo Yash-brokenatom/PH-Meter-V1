@@ -106,7 +106,7 @@ export default function Report() {
   };
 
   return (
-    <SafeAreaView className="h-full gap-8 items-center ">
+    <SafeAreaView className="h-full gap-8 items-center bg-white ">
       <Image
         style={{width:200, height:270,marginTop:80}}
         source={require("@/assets/images/Kit.png")}

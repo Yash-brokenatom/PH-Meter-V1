@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomModal from "@/components/Modall";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { BleManager, Device } from "react-native-ble-plx";
+import { BleManager, Characteristic, Device, Service } from "react-native-ble-plx";
 import AntDesign from '@expo/vector-icons/AntDesign';
 
 
@@ -27,11 +27,14 @@ export default function PHMeterScreen() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [connected,setConnected]=useState<Device>()
 
-  useEffect(()=>{
-    if(isScanning){
-      setSetup("Phase1")
-    }else{setSetup("Phase2")}
-  })
+  useEffect(() => {
+  if (isScanning) {
+    setSetup("Phase1");
+  } else {
+    setSetup("Phase2");
+  }
+}, [isScanning]);
+
 
   const requestPermission = async () => {
     if (Platform.OS === "android") {
@@ -52,8 +55,14 @@ export default function PHMeterScreen() {
  
     return true;
   };
-
+  
   const startScanning = async () => {
+
+     const btState = await bleManager.state();
+  if (btState !== 'PoweredOn') {
+    alert("Please turn on bluetooth")
+    return;
+  }
     const PermissionGranted = await requestPermission();
     if (!PermissionGranted) {
       alert("Please allow Bluetooh to use the app");
@@ -83,28 +92,65 @@ export default function PHMeterScreen() {
         }
       }
     );
-    setInterval(() => {
-      bleManager.stopDeviceScan();
-      setIsScanning(false);
-    }, 20000);
+setTimeout(() => {
+  bleManager.stopDeviceScan();
+  setIsScanning(false);
+}, 20000);
+
   };
 
-  const checkIfDeviceConnected = async  (device : Device)=>{
-    try{
-      const isConnected = await device.isConnected();
-      if(isConnected){
-        setConnected(device);
-        setModalVisible(false)
-      }
-      else{
-        setViewDevice(false)
-        console.log("no")
-        setModalVisible(false)
+ const checkIfDeviceConnected = async (device: Device) => {
+  try {
+    console.log("Connecting to device...");
+    const connectedDevice = await device.connect();
+    await connectedDevice.discoverAllServicesAndCharacteristics();
+    const services =  await connectedDevice.services(); 
 
+    services.forEach(async(service)=>{
+      const characterstics = await service.characteristics();
+
+     characterstics.forEach((char)=>{
+      console.log(service.uuid);
+      console.log(char.uuid)
+      
+      if(char.isNotifiable){
+        connectedDevice.monitorCharacteristicForService(
+          service.uuid,
+          char.uuid, 
+          (error,characterstics)=>{
+              if (error){
+                console.log("monitor",error)
+                return;
+              }
+              const data = characterstics?.value
+              if (data){
+                const decodedata = atob(data);
+                console.log("Live Data:", decodedata);
+              }
+          })
       }
+
+     })
+
+    })
+
+
+    const isConnected = await connectedDevice.isConnected();
+
+    if (isConnected) {
+      console.log("Connected!");
+      setConnected(connectedDevice);
+      setModalVisible(false);
+      setViewDevice(false);
+    } else {
+      console.log("Connection failed");
+      setModalVisible(false);
     }
-    catch(error){console.log(error)}
+  } catch (error) {
+    console.log("Error while connecting:", error);
+    setModalVisible(false);
   }
+};
 
   const modalContent = () => {
     return (
@@ -339,7 +385,7 @@ export default function PHMeterScreen() {
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView className="bg-white">
       <View className="justify-around h-full px-4 bg-white ">
         <View>
           <Text className="text-4xl font-bold text-center">
@@ -385,7 +431,7 @@ export default function PHMeterScreen() {
             </View>
           </View>
         )}
-        {!viewDevice && (
+        {!viewDevice  && (
           <View className="gap-4 ">
             <View className="flex-row items-center mb-2">
               <MaterialCommunityIcons name="bluetooth" size={18} color="#000" />
@@ -406,7 +452,7 @@ export default function PHMeterScreen() {
                 <Ionicons name="calculator" size={24} />
                 <View>
                   <Text className="text-base font-semibold">
-                    SN 92540667324
+                    {connected?.name || "No device connected"}
                   </Text>
                   <Text className="text-sm text-gray-500">
                     Last import 5 seconds ago

@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import LinearGradient from "react-native-linear-gradient";
 import { HelloWave } from "@/components/HelloWave";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // OTP Component
 type OTPInputProps = {
@@ -178,12 +179,12 @@ export default function Login() {
   };
 
   return (
-    <>
+    <SafeAreaView className="bg-white">
       {!pending ? (
-        <View className="h-full top-[18%] gap-28 p-12">
+        <View className="h-full top-[18%] gap-28 p-12 ">
           <View className="items-center">
             <View className="flex flex-row items-center">
-              <Text className="text-4xl font-bold">Hey, Hello</Text>
+              <Text className="text-4xl font-bold">Hey,Hello</Text>
               <HelloWave />
             </View>
             <View>
@@ -270,7 +271,7 @@ export default function Login() {
                   style={{
                     color: "#0983C8",
                     textAlign: "center",
-                    marginTop: 10,
+                    marginTop: 50,
                     textDecorationLine: "underline",
                   }}
                 >
@@ -296,6 +297,6 @@ export default function Login() {
           </View>
         </View>
       )}
-    </>
+    </SafeAreaView>
   );
 }

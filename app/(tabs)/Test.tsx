@@ -6,7 +6,7 @@ import { HelloWave } from '@/components/HelloWave'
 export default function Test() {
   return (
     
-    <View className=' h-full justify-around'>
+    <View className=' h-full justify-around bg-white'>
       <View className='items-center'>
       <View className='flex flex-row items-center'>
      <Text className='text-4xl font-bold'>Hey, Hello</Text>
