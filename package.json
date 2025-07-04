@@ -15,7 +15,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@clerk/clerk-expo": "^2.9.6",
+    "@clerk/clerk-expo": "^2.14.2",
     "@clerk/types": "^4.47.0",
     "@expo/config-plugins": "^9.0.16",
     "@expo/vector-icons": "^14.0.4",
