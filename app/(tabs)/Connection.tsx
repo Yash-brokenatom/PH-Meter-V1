@@ -6,6 +6,7 @@ import {
   Platform,
   PermissionsAndroid,
   FlatList,
+  Alert
 } from "react-native";
 import { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,6 +14,7 @@ import CustomModal from "@/components/Modall";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { BleManager, Characteristic, Device, Service } from "react-native-ble-plx";
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { Buffer } from "buffer";
 
 
 
@@ -25,15 +27,15 @@ export default function PHMeterScreen() {
   const [viewDevice, setViewDevice] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
   const [devices, setDevices] = useState<Device[]>([]);
-  const [connected,setConnected]=useState<Device>()
+  const [connected, setConnected] = useState<Device>()
 
   useEffect(() => {
-  if (isScanning) {
-    setSetup("Phase1");
-  } else {
-    setSetup("Phase2");
-  }
-}, [isScanning]);
+    if (isScanning) {
+      setSetup("Phase1");
+    } else {
+      setSetup("Phase2");
+    }
+  }, [isScanning]);
 
 
   const requestPermission = async () => {
@@ -44,28 +46,28 @@ export default function PHMeterScreen() {
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
       ]);
-         return(
+      return (
         result[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION] ===
-          "granted" &&
+        "granted" &&
         result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] === "granted" &&
         result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] ===
-          "granted" 
+        "granted"
       )
     }
- 
+
     return true;
   };
-  
+
   const startScanning = async () => {
 
-     const btState = await bleManager.state();
-  if (btState !== 'PoweredOn') {
-    alert("Please turn on bluetooth")
-    return;
-  }
+    const btState = await bleManager.state();
+    if (btState !== 'PoweredOn') {
+      alert("Please turn on bluetooth")
+      return;
+    }
     const PermissionGranted = await requestPermission();
     if (!PermissionGranted) {
-      alert("Please allow Bluetooh to use the app");
+      Alert.alert("Please allow Bluetooh to use the app");
       return;
     }
     console.log("start scanning");
@@ -92,65 +94,94 @@ export default function PHMeterScreen() {
         }
       }
     );
-setTimeout(() => {
-  bleManager.stopDeviceScan();
-  setIsScanning(false);
-}, 20000);
+    setTimeout(() => {
+      bleManager.stopDeviceScan();
+      setIsScanning(false);
+    }, 20000);
 
   };
 
- const checkIfDeviceConnected = async (device: Device) => {
-  try {
-    console.log("Connecting to device...");
-    const connectedDevice = await device.connect();
-    await connectedDevice.discoverAllServicesAndCharacteristics();
-    const services =  await connectedDevice.services(); 
+  const checkIfDeviceConnected = async (device: Device) => {
+    try {
+      console.log("Connecting to device...");
+      const connectedDevice = await device.connect();
+      await connectedDevice.discoverAllServicesAndCharacteristics();
+      const services = await connectedDevice.services();
 
-    services.forEach(async(service)=>{
-      const characterstics = await service.characteristics();
+      services.forEach(async (service) => {
+        const characterstics = await service.characteristics();
 
-     characterstics.forEach((char)=>{
-      console.log(service.uuid);
-      console.log(char.uuid)
-      
-      if(char.isNotifiable){
-        connectedDevice.monitorCharacteristicForService(
-          service.uuid,
-          char.uuid, 
-          (error,characterstics)=>{
-              if (error){
-                console.log("monitor",error)
-                return;
+        characterstics.forEach((char) => {
+          console.log(service.uuid);
+          console.log(char.uuid)
+
+          if (char.uuid.toLowerCase().startsWith("00001234")) {
+            console.log("Subscribing to notifications on:", char.uuid);
+            connectedDevice.monitorCharacteristicForService(
+              service.uuid,
+              char.uuid,
+              (error, characteristic) => {
+                if (error) {
+                  console.log("Notification Error:", error);
+                  Alert.alert("Connection Lost", "Device disconnected or notify failed.");
+                  connectedDevice.cancelConnection();
+                  return;
+                }
+
+                const data = characteristic?.value;
+                if (data) {
+                  try {
+                    const bytes = Buffer.from(data, "base64");
+                    console.log("Received bytes length:", bytes.length);
+
+                    if (bytes.length < 18) {
+                      console.log("⚠️ Incomplete packet");
+                      return;
+                    }
+
+                    const seq = bytes.readUInt16LE(0);
+                    const low = bytes.readUInt32LE(2);
+                    const high = bytes.readUInt32LE(6);
+                    const timestamp = (BigInt(high) << 32n) | BigInt(low);
+                    const ph = bytes.readFloatLE(10);
+                    const temp = bytes.readFloatLE(14);
+
+                    console.log("Seq:", seq);
+                    console.log("Timestamp:", timestamp.toString());
+                    console.log("pH:", ph);
+                    console.log("Temp:", temp);
+
+
+                  } catch (e) {
+                    console.log("⚠️ Failed to decode data:", e);
+                  }
+                }
               }
-              const data = characterstics?.value
-              if (data){
-                const decodedata = atob(data);
-                console.log("Live Data:", decodedata);
-              }
-          })
+            );
+          }
+
+
+        })
+
+      })
+
+
+      const isConnected = await connectedDevice.isConnected();
+
+      if (isConnected) {
+        console.log("Connected!");
+        setConnected(connectedDevice);
+        setModalVisible(false);
+        setViewDevice(false);
+      } else {
+        console.log("Connection failed");
+        setModalVisible(false);
       }
-
-     })
-
-    })
-
-
-    const isConnected = await connectedDevice.isConnected();
-
-    if (isConnected) {
-      console.log("Connected!");
-      setConnected(connectedDevice);
-      setModalVisible(false);
-      setViewDevice(false);
-    } else {
-      console.log("Connection failed");
+    } catch (error) {
+      console.log("Error while connecting:", error);
       setModalVisible(false);
     }
-  } catch (error) {
-    console.log("Error while connecting:", error);
-    setModalVisible(false);
-  }
-};
+  };
 
   const modalContent = () => {
     return (
@@ -241,13 +272,13 @@ setTimeout(() => {
             </View>
             <View className="mt-20">
               {setup === "Phase1" && (
-                  <View className="items-center gap-4 p-4 mt-20">
-                    <Text className="text-center font-bold text-xl">
-                      Looking for devices
-                    </Text>
+                <View className="items-center gap-4 p-4 mt-20">
+                  <Text className="text-center font-bold text-xl">
+                    Looking for devices
+                  </Text>
                   <Image className="animate-spin" source={require("@/assets/images/load.png")} style={{ width: 30, height: 30 }} />
-              
-                  </View>
+
+                </View>
               )}
               {setup === "Phase2" && (
                 <View className="p-4">
@@ -255,30 +286,30 @@ setTimeout(() => {
                     Select your Smart pH
                   </Text>
                   <FlatList
-                   className="h-40"
+                    className="h-40"
                     data={devices}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
-                      <TouchableOpacity key={item.id} className="flex-row items-center justify-between my-3 bg-white p-3 rounded-xl" onPress={()=>checkIfDeviceConnected(item)}>
+                      <TouchableOpacity key={item.id} className="flex-row items-center justify-between my-3 bg-white p-3 rounded-xl" onPress={() => checkIfDeviceConnected(item)}>
                         <View className="flex-row items-center gap-2">
-                        <AntDesign name="calculator" size={24} color="black"/>
-                        <View><Text className="font-bold">{item.name || "Unnamed Device"}</Text>
-                        <Text>{item.id}</Text></View>
+                          <AntDesign name="calculator" size={24} color="black" />
+                          <View><Text className="font-bold">{item.name || "Unnamed Device"}</Text>
+                            <Text>{item.id}</Text></View>
                         </View>
                         <Ionicons name="chevron-forward-outline" size={24} color={"#848484"} />
-                        
+
 
                       </TouchableOpacity>
                     )}
                   />
                   <View style={{ margin: 70, alignItems: "center" }}>
-                      <Text className="text-sm text-center text-gray-500 ">
-                        Not yours?
-                      </Text>
-                      <Text className="text-sm text-gray-500 ">
-                        We are scanning for more...
-                      </Text>
-                 
+                    <Text className="text-sm text-center text-gray-500 ">
+                      Not yours?
+                    </Text>
+                    <Text className="text-sm text-gray-500 ">
+                      We are scanning for more...
+                    </Text>
+
                   </View>
                   <TouchableOpacity
                     className=" mx-3  p-4 rounded-lg border"
@@ -406,8 +437,8 @@ setTimeout(() => {
         {viewDevice && (
           <View className="gap-4 ">
             <TouchableOpacity
-              onPress={() => 
-              startScanning()
+              onPress={() =>
+                startScanning()
               }
               className="bg-[#304FFE]  py-3 rounded-xl mt-6  items-center  "
             >
@@ -431,7 +462,7 @@ setTimeout(() => {
             </View>
           </View>
         )}
-        {!viewDevice  && (
+        {!viewDevice && (
           <View className="gap-4 ">
             <View className="flex-row items-center mb-2">
               <MaterialCommunityIcons name="bluetooth" size={18} color="#000" />

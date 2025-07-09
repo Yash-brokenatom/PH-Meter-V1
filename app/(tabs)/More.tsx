@@ -7,6 +7,9 @@ import Tags from "@/components/Tags";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
  import { setupDatabase, insertRecord,fetchRecords } from "@/Database/Database";
+import { useAuth } from "@clerk/clerk-expo";
+import { CommonActions, useNavigation } from "@react-navigation/native";
+import { NavigationProp } from "@react-navigation/native";
 
 
 type DataItem = {
@@ -19,6 +22,9 @@ type DataItem = {
 
 
 export default function More() {
+
+
+  const navigation  = useNavigation<NavigationProp<any>>();
   const [records, setRecords] = useState<{ id: number; ph: number; dateTime: string }[]>([]);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(true);
     const [dateTime, setDateTime] = useState<Date>(new Date());
@@ -35,8 +41,26 @@ export default function More() {
       setShowTime(false);
     };
 
+
+    //  for log out 
+
+const {signOut} = useAuth(); 
+
+const singoutHandle = async() => {
+  await signOut();
+  navigation.dispatch(
+    CommonActions.reset({
+      index:0,
+      routes:[{name:'Login'}] 
+    })
+  )
+}
+
   // for saving the array of ph 
 
+
+
+  
   const handleData = async() => {
     if (ph !== null) { 
       await insertRecord(ph,dateTime.toString());
@@ -257,6 +281,14 @@ export default function More() {
            </Text>
           <Ionicons name='chevron-forward-outline' color={"#A4A4A4"} size={25}/>
          </View>
+          <TouchableOpacity onPress={()=>singoutHandle()}>
+         <View className='flex flex-row items-center justify-between p-4 rounded-xl 'style={{backgroundColor:"#F3F3F3" , marginHorizontal:20}}>
+           <Text>
+             Logout
+           </Text>
+           <Ionicons name='chevron-forward-outline' color={"#A4A4A4"} size={25}/>
+         </View>
+           </TouchableOpacity>
          </View>
          
        </View></SafeAreaView>

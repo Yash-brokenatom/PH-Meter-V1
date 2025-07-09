@@ -263,7 +263,7 @@ export default function Login() {
                 >
                   {otpError === "2"
                     ? "The OTP you entered is incorrect, please check again or resend it now"
-                    : "The OTP you entered is correct, please proceed to recover your account"}
+                    : "The OTP you entered is correct, please proceed to  your account"}
                 </Text>
               )}
               <TouchableOpacity onPress={resendCode}>

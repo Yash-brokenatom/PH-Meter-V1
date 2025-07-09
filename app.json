@@ -51,7 +51,8 @@
         }
       ],
       "expo-build-properties",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
