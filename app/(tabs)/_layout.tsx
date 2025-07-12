@@ -65,10 +65,6 @@ export default function TabLayout() {
         headerShown:false,
         tabBarIcon:({color})=> <Feather name="more-horizontal" size={24} color={color} />
       }}/>
-      <Tabs.Screen name='Test' options={{
-        headerShown:false,
-        tabBarIcon:({color})=> <Feather name="more-horizontal" size={24} color={color} />
-      }}/>
     </Tabs>
   );
 }

@@ -9,7 +9,7 @@ interface CustomModalProps {
 
 export default function CustomModal({isVisible,content,onClose}:CustomModalProps){
     return(
-         <Modal transparent visible={isVisible} animationType="slide">
+         <Modal transparent visible={isVisible} animationType='slide'>
       <View style={{backgroundColor:"#EBEBEB",flex:1,borderRadius:20,top:20}}>
         <View >
           {content}

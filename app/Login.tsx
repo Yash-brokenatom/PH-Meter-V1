@@ -6,6 +6,9 @@ import LinearGradient from "react-native-linear-gradient";
 import { HelloWave } from "@/components/HelloWave";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRoute, RouteProp } from "@react-navigation/native";
+import { insertUser } from "@/Database/supabaseData";
+import { useNavigation, NavigationProp, CommonActions } from "@react-navigation/native";
 
 // OTP Component
 type OTPInputProps = {
@@ -14,9 +17,17 @@ type OTPInputProps = {
   otpError: string;
 };
 
+type LoginRouteParams = {
+  allAnswers: any;
+};
+
+
+
 const OTP: React.FC<OTPInputProps> = ({ length = 6, onComplete, otpError }) => {
+
+
   const [code, setCode] = useState(new Array(length).fill(""));
-  const inputRefs = useRef<TextInput[]>([]);
+  const inputRefs = useRef<Array<TextInput | null>>([]);
 
   const handleChange = (text: string, index: number) => {
     const newOtp = [...code];
@@ -44,7 +55,9 @@ const OTP: React.FC<OTPInputProps> = ({ length = 6, onComplete, otpError }) => {
       {code.map((_, index) => (
         <TextInput
           key={index}
-          ref={(ref) => (inputRefs.current[index] = ref!)}
+          ref={(ref) => {
+            inputRefs.current[index] = ref;
+          }}
           style={{
             width: 50,
             height: 50,
@@ -62,6 +75,8 @@ const OTP: React.FC<OTPInputProps> = ({ length = 6, onComplete, otpError }) => {
           onChangeText={(text) => handleChange(text, index)}
           onKeyPress={(e) => handleKeyPress(e, index)}
         />
+
+
       ))}
     </View>
   );
@@ -75,7 +90,10 @@ export default function Login() {
   const [pending, setPending] = useState(false);
   const [isSignUpFlow, setIsSignUpFlow] = useState(false);
   const [otpError, setOtpError] = useState("");
-  const router = useRouter();
+  const navigation = useNavigation<NavigationProp<any>>();
+
+  const route = useRoute<RouteProp<Record<string, LoginRouteParams>, string>>();
+  const { allAnswers } = route.params || {};
 
   const sendCode = async () => {
     if (!isSignUpLoaded || !isSignInLoaded || !signIn || !signUp) return;
@@ -104,24 +122,28 @@ export default function Login() {
       setOtpError("");
     } catch (error: any) {
       if (error.errors?.[0]?.code === "form_identifier_not_found") {
-        console.log("User does not exist. Creating an account.");
+        console.log("User does not exist. Creating an account.")
+        if (!allAnswers) {
+          alert("User not found. Please sign up from new user.");
+          return;
+        } else {
+          try {
+            await signUp.create({
+              emailAddress,
+            });
 
-        try {
-          await signUp.create({
-            emailAddress,
-          });
+            await signUp.prepareEmailAddressVerification({
+              strategy: "email_code",
+            });
 
-          await signUp.prepareEmailAddressVerification({
-            strategy: "email_code",
-          });
-
-          console.log("OTP sent for new user signup.");
-          setPending(true);
-          setIsSignUpFlow(true);
-          setOtpError("");
-        } catch (signUpError) {
-          console.error("Error creating new user:", signUpError);
-          alert("Error creating account. Please try again.");
+            console.log("OTP sent for new user signup.");
+            setPending(true);
+            setIsSignUpFlow(true);
+            setOtpError("");
+          } catch (signUpError) {
+            console.error("Error creating new user:", signUpError);
+            alert("Error creating account. Please try again.");
+          }
         }
       } else {
         console.error("Error sending code:", error);
@@ -144,8 +166,21 @@ export default function Login() {
         if (signUpAttempt.status === "complete" && signUpAttempt.createdSessionId) {
           await setActive({ session: signUpAttempt.createdSessionId });
           setOtpError("1");
+          const userData = {
+            email: emailAddress,
+            ...allAnswers,
+          };
+          const result = await insertUser(userData);
+          console.log("Inserted user into Supabase:", result);
           console.log("Sign-up successful!");
-          setTimeout(() => router.replace("/(tabs)/Insight"), 1000);
+          setTimeout(() => navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: '(tabs)' }],
+            })
+
+          )
+            , 1000);
         } else {
           console.error("Sign-up verification incomplete:", signUpAttempt);
           setOtpError("2");
@@ -160,7 +195,14 @@ export default function Login() {
           await setActive({ session: signInAttempt.createdSessionId });
           setOtpError("1");
           console.log("Sign-in successful!");
-          setTimeout(() => router.replace("/(tabs)/Insight"), 1000);
+          setTimeout(() => navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: '(tabs)' }],
+            })
+
+          )
+            , 1000);
         } else {
           console.error("Sign-in verification incomplete:", signInAttempt);
           setOtpError("2");

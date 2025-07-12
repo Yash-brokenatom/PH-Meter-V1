@@ -58,6 +58,7 @@
       "typedRoutes": true
     },
     "extra": {
+      "clerkPublishableKey": "pk_test_cHJlc2VudC1kb3J5LTY1LmNsZXJrLmFjY291bnRzLmRldiQ",
       "router": {
         "origin": false
       },

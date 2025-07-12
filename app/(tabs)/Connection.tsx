@@ -15,9 +15,9 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { BleManager, Characteristic, Device, Service } from "react-native-ble-plx";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { Buffer } from "buffer";
-
-
-
+import Button from "@/components/Button";
+import { insertData, getUser } from "@/Database/supabaseData";
+import { useUser } from "@clerk/clerk-expo";
 const bleManager = new BleManager();
 
 export default function PHMeterScreen() {
@@ -28,6 +28,9 @@ export default function PHMeterScreen() {
   const [isScanning, setIsScanning] = useState(false);
   const [devices, setDevices] = useState<Device[]>([]);
   const [connected, setConnected] = useState<Device>()
+  const { user } = useUser();
+
+  let notificationBuffer = Buffer.alloc(0);
 
   useEffect(() => {
     if (isScanning) {
@@ -36,6 +39,20 @@ export default function PHMeterScreen() {
       setSetup("Phase2");
     }
   }, [isScanning]);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      const email = user?.emailAddresses[0]?.emailAddress;
+      if (!email) return;
+      const result = await getUser(email);
+      console.log("User data:", result);
+    };
+
+    if (user) {
+      fetchUserDetails();
+    }
+  }, [user]);
+
 
 
   const requestPermission = async () => {
@@ -97,33 +114,39 @@ export default function PHMeterScreen() {
     setTimeout(() => {
       bleManager.stopDeviceScan();
       setIsScanning(false);
-    }, 20000);
+    }, 10000);
 
   };
+
+  // Outside your component or as a useRef
 
   const checkIfDeviceConnected = async (device: Device) => {
     try {
       console.log("Connecting to device...");
       const connectedDevice = await device.connect();
       await connectedDevice.discoverAllServicesAndCharacteristics();
+
+      const negotiatedMTU = await connectedDevice.requestMTU(247);
+      console.log("Negotiated MTU:", negotiatedMTU);
+
       const services = await connectedDevice.services();
 
-      services.forEach(async (service) => {
-        const characterstics = await service.characteristics();
+      for (const service of services) {
+        const characteristics = await service.characteristics();
 
-        characterstics.forEach((char) => {
+        for (const char of characteristics) {
           console.log(service.uuid);
-          console.log(char.uuid)
+          console.log(char.uuid);
 
           if (char.uuid.toLowerCase().startsWith("00001234")) {
             console.log("Subscribing to notifications on:", char.uuid);
+
             connectedDevice.monitorCharacteristicForService(
               service.uuid,
               char.uuid,
               (error, characteristic) => {
                 if (error) {
                   console.log("Notification Error:", error);
-                  Alert.alert("Connection Lost", "Device disconnected or notify failed.");
                   connectedDevice.cancelConnection();
                   return;
                 }
@@ -132,25 +155,80 @@ export default function PHMeterScreen() {
                 if (data) {
                   try {
                     const bytes = Buffer.from(data, "base64");
-                    console.log("Received bytes length:", bytes.length);
+                    console.log("Received bytes length:", bytes.length)
+                    console.log("Raw Bytes: ", bytes.toString("hex"));
 
-                    if (bytes.length < 18) {
-                      console.log("⚠️ Incomplete packet");
-                      return;
+
+                    notificationBuffer = Buffer.concat([notificationBuffer, bytes]);
+
+                    // Parse multiple packets if present in buffer
+                    while (notificationBuffer.length >= 12) {
+                      // Check magic word first
+                      const magic = notificationBuffer.readUInt32LE(0);
+                      if (magic !== 0xDEADBEEF) {
+                        notificationBuffer = notificationBuffer.slice(1);
+                        continue;
+                      }
+
+                      // Read payloadLen from header
+                      const payloadLen = notificationBuffer.readUInt8(5);
+
+                      // Full packet size: magic(4) + header(2) + payload + CRC(2)
+                      const fullPacketSize = 4 + 2 + payloadLen + 2;
+
+                      if (notificationBuffer.length < fullPacketSize) {
+                        // Incomplete packet, wait for next notify
+                        break;
+                      }
+
+                      const packet = notificationBuffer.slice(0, fullPacketSize);
+                      notificationBuffer = notificationBuffer.slice(fullPacketSize);
+
+                      const rspId = packet.readUInt8(4);
+                      console.log("📦 Response ID:", rspId);
+                      console.log("📦 Payload Length:", payloadLen);
+
+
+                      function readBigUInt64LE(buffer: Buffer, offset: number = 0) {
+                        const low = buffer.readUInt32LE(offset);
+                        const high = buffer.readUInt32LE(offset + 4);
+                        return (BigInt(high) << 32n) + BigInt(low);
+                      }
+
+                      const payload = packet.slice(6, 6 + payloadLen);
+
+                      // Decode sensor data if payloadLen ≥ 26
+                      if (payloadLen >= 26) {
+                        const seq = payload.readUInt16LE(0);
+                        const timestamp = Number(readBigUInt64LE(payload, 2));
+                        const ph = payload.readFloatLE(10);
+                        const temp = payload.readFloatLE(14);
+                        const voltage = payload.readFloatLE(18);
+                        const errCode = payload.readUInt32LE(22);
+
+                        console.log("✅ Sensor Data:");
+                        console.log("Seq:", seq);
+                        console.log("Timestamp:", timestamp);
+                        console.log("pH:", ph);
+                        console.log("Temp:", temp);
+                        console.log("Battery Voltage:", voltage);
+                        console.log("Error Code:", errCode);
+
+                        // data insert in database
+                        const email = user?.emailAddresses[0]?.emailAddress;
+                        if (email) {
+                          insertData(email, {
+                            sequence_no: seq,
+                            ph: ph,
+                            temperature: temp,
+                            bat_voltage: voltage,
+                            err_code: errCode,
+                          });
+                        }
+
+
+                      }
                     }
-
-                    const seq = bytes.readUInt16LE(0);
-                    const low = bytes.readUInt32LE(2);
-                    const high = bytes.readUInt32LE(6);
-                    const timestamp = (BigInt(high) << 32n) | BigInt(low);
-                    const ph = bytes.readFloatLE(10);
-                    const temp = bytes.readFloatLE(14);
-
-                    console.log("Seq:", seq);
-                    console.log("Timestamp:", timestamp.toString());
-                    console.log("pH:", ph);
-                    console.log("Temp:", temp);
-
 
                   } catch (e) {
                     console.log("⚠️ Failed to decode data:", e);
@@ -159,15 +237,10 @@ export default function PHMeterScreen() {
               }
             );
           }
-
-
-        })
-
-      })
-
+        }
+      }
 
       const isConnected = await connectedDevice.isConnected();
-
       if (isConnected) {
         console.log("Connected!");
         setConnected(connectedDevice);
@@ -177,11 +250,27 @@ export default function PHMeterScreen() {
         console.log("Connection failed");
         setModalVisible(false);
       }
+
     } catch (error) {
       console.log("Error while connecting:", error);
       setModalVisible(false);
     }
   };
+
+const disconnectDevice = async () => {
+  try {
+    if (connected) {
+      await connected.cancelConnection();
+      console.log("🔌 Device disconnected successfully");
+    }
+  } catch (error) {
+    console.log("❌ Error disconnecting device:", error);
+  } finally {
+    setConnected(undefined);
+    setViewDevice(true);
+    notificationBuffer = Buffer.alloc(0);
+  }
+};
 
   const modalContent = () => {
     return (
@@ -436,16 +525,9 @@ export default function PHMeterScreen() {
 
         {viewDevice && (
           <View className="gap-4 ">
-            <TouchableOpacity
-              onPress={() =>
-                startScanning()
-              }
-              className="bg-[#304FFE]  py-3 rounded-xl mt-6  items-center  "
-            >
-              <Text className="text-white font-bold text-lg">
-                Pair my Smart pH
-              </Text>
-            </TouchableOpacity>
+            <Button onPress={() =>
+              startScanning()
+            } title="Pair my Smart pH" />
             <CustomModal
               isVisible={ModalVisible}
               content={modalContent()}
@@ -498,7 +580,7 @@ export default function PHMeterScreen() {
             <TouchableOpacity
               className="p-3  mb-6 border rounded-xl"
               style={{ borderColor: "#CF2828" }}
-              onPress={() => setViewDevice(true)}
+                onPress={disconnectDevice}
             >
               <Text
                 className=" text-center font-bold text-lg"

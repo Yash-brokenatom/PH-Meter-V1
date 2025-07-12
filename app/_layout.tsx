@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import { isLoaded, useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -9,6 +9,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@/cache';
 import { useRouter } from 'expo-router';
+import constants from 'expo-constants';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,7 +24,7 @@ function AuthenticatedLayout() {
     }
   }, [isLoaded, isSignedIn]);
 
-  if (!isLoaded) return null;
+  // if (!isLoaded) return null;
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -39,6 +40,9 @@ function AuthenticatedLayout() {
   );
 }
 
+const clerkkey = constants.expoConfig?.extra?.clerkPublishableKey;
+
+
 export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -53,7 +57,7 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <ClerkProvider tokenCache={tokenCache}>
+    <ClerkProvider tokenCache={tokenCache} publishableKey={clerkkey}>
       <AuthenticatedLayout />
     </ClerkProvider>
   );

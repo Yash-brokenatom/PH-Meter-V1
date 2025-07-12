@@ -6,8 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Redirect, useNavigation } from 'expo-router';
 import { NavigationProp } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
+import { useAuth } from '@clerk/clerk-expo';
 
 export default function index () {
+  const {isSignedIn,isLoaded} = useAuth();
     const navigation = useNavigation<NavigationProp<any>>();
   return (
     <SafeAreaView className='bg-white h-full justify-center items-center gap-[71px] '>
@@ -15,7 +17,7 @@ export default function index () {
             <Image style={{height:180, width:180}} source={require("@/assets/images/splash-icon.png")} />
             <Text className=' text-center font-semibold text-4xl  '>Track Your Body’s pH Balance Effortlessly</Text>
         </View>
-        <View className='w-full gap-5 p-12'>
+       { !isSignedIn && isLoaded && <View className='w-full gap-5 p-12'>
               <TouchableOpacity onPress={()=> navigation.navigate("GetStarted")}>
                             <LinearGradient
                               style={{
@@ -30,12 +32,12 @@ export default function index () {
                               <Text className="text-center text-white">New User</Text>
                             </LinearGradient>
                           </TouchableOpacity>
-              <TouchableOpacity style={{borderColor:"#0983C8",borderWidth:2,padding:12,borderRadius:10}} onPress={()=> navigation.navigate("Login")}>
+              <TouchableOpacity style={{borderColor:"#0983C8",borderWidth:2,padding:12,borderRadius:10}} onPress={()=> navigation.navigate("GetStarted")}>
                               <Text className="text-center text-[#0983C8]">Existing User</Text>
                           </TouchableOpacity>
            
-        </View>
-        {/* <Redirect href={"./Login"}/> */}
+        </View>}
+        {/* <Redirect href={"/GetStarted"}/> */}
     </SafeAreaView> 
 )
 }; 

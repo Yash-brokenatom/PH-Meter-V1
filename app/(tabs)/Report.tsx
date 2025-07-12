@@ -6,7 +6,10 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as Print from "expo-print";
-import { fetchRecords } from '@/Database/Database';
+// import { fetchRecords } from '@/Database/Database';
+import { getData, getUser } from '@/Database/supabaseData';
+import { useUser } from '@clerk/clerk-expo';
+import Button from '@/components/Button';
 
 export default function Report() {
   const [fromDate, setFromDate] = useState<Date>(new Date());
@@ -14,6 +17,7 @@ export default function Report() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [editingDate, setEditingDate] = useState<string | null>(null);
   const [range, setRange] = useState(false);
+  const { user } = useUser();
 
   const onChange = (event: any, selectedDate: any) => {
     if (selectedDate) {
@@ -36,17 +40,30 @@ export default function Report() {
       }
 
       // ✅ Fetch Data
-      const records = await new Promise<any[]>((resolve) =>
-        {const data = fetchRecords();
-        resolve(data);}
-        
-      );
+      const email = user?.emailAddresses[0].emailAddress;
+      if (!email) {
+        alert("User email not found.");
+        return;
+      }
+
+     const usr = await getUser(email);
+if (!usr || usr.length === 0) {
+  alert("User not found.");
+  return;
+}
+
+const userId = usr[0].id;
+
+const records = await getData(userId);
+
+
 
       // ✅ Filter records by date range
       const filteredRecords = records.filter((item) => {
-        const recordDate = new Date(item.dateTime);
-        return recordDate >= fromDate && recordDate <= toDate;
-      });
+  const recordDate = new Date(item.created_at);
+  return recordDate >= fromDate && recordDate <= toDate;
+});
+
 
       if (!filteredRecords.length) {
         alert("No data available for the selected date range.");
@@ -70,16 +87,16 @@ export default function Report() {
                     <th>Date & Time</th>
                 </tr>
                 ${filteredRecords
-                  .map(
-                    (item, index) => `
+          .map(
+            (item, index) => `
                     <tr>
                         <td>${index + 1}</td>
                         <td>${item.ph}</td>
-                        <td>${new Date(item.dateTime).toLocaleString()}</td>
+                        <td>${new Date(item.created_at).toLocaleString()}</td>
                     </tr>
                 `
-                  )
-                  .join("")}
+          )
+          .join("")}
             </table>
         </body>
         </html>
@@ -108,7 +125,7 @@ export default function Report() {
   return (
     <SafeAreaView className="h-full gap-8 items-center bg-white ">
       <Image
-        style={{width:200, height:270,marginTop:80}}
+        style={{ width: 200, height: 270, marginTop: 80 }}
         source={require("@/assets/images/Kit.png")}
       />
 
@@ -146,7 +163,7 @@ export default function Report() {
             />
           </TouchableOpacity>
 
-          { range && (
+          {range && (
             <View>
               <View className="flex flex-row justify-between border-[#D7D7D7] border-y py-[8px]">
                 <Text className="text-[#808080] text-[18px]">From Date</Text>
@@ -188,14 +205,9 @@ export default function Report() {
             </View>
           )}
         </View>
-      </View> 
+      </View>
 
-      <TouchableOpacity 
-        className="bg-[#304FFE] p-[10px] rounded-[10px] w-[320px]"
-        onPress={exportDataToPDF}
-      >
-        <Text className="text-[22px] text-center text-white">Download PDF</Text>
-      </TouchableOpacity>
+      <Button onPress={exportDataToPDF} title='Continue' style={{ width: "80%", padding: 4 }} />
     </SafeAreaView>
   );
 }
